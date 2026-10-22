@@ -1,0 +1,4 @@
+# Copy to local.properties and edit for your machine.
+# Use forward slashes - Java's properties parser breaks on raw backslashes
+# and the Android build fails with "java.io.IOException: Invalid file path".
+sdk.dir=C:/Users/ajaik/AppData/Local/Android/Sdk

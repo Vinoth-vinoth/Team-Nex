@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-title"><p class="eyebrow">GENERATED SCHEDULE</p><h1>Timetable</h1><p class="muted">Review this draft for correctness before relying on it.</p></div>
+<section class="panel">
+<div class="panel-head"><h2>Scheduled classes</h2><span class="count">{{ rows|length }} entries</span></div>
+<div class="table-wrap"><table><thead><tr><th>Day</th><th>Time</th><th>Section</th><th>Subject</th><th>Faculty</th><th>Room</th><th>Lab</th></tr></thead><tbody>
+{% for row in rows %}<tr><td>{{ row.day_name or "—" }}</td><td>{{ row.start_time or "—" }} – {{ row.end_time or "—" }}</td><td>{{ row.section_name or row.id }}</td><td>{{ row.subject_name or "—" }}</td><td>{{ row.faculty_name or "—" }}</td><td>{{ row.room_code or "—" }}</td><td>{{ "Yes" if row.is_lab else "No" }}</td></tr>
+{% else %}<tr><td colspan="7" class="empty">No timetable entries yet. Return to the dashboard and generate a draft.</td></tr>{% endfor %}
+</tbody></table></div>
+</section>
+{% endblock %}

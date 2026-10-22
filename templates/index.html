@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="hero">
+  <div><p class="eyebrow">COLLEGE SCHEDULING WORKSPACE</p><h1>Build a smarter<br><span>timetable.</span></h1>
+  <p class="muted">Generate a first draft using your existing faculty, subject, section, room and time-slot data.</p></div>
+  <div class="hero-symbol">✳</div>
+</section>
+<section class="stats">
+  <div class="stat"><span>Faculty</span><strong>{{ faculty_count }}</strong></div>
+  <div class="stat"><span>Subjects</span><strong>{{ subject_count }}</strong></div>
+  <div class="stat"><span>Sections</span><strong>{{ section_count }}</strong></div>
+  <div class="stat"><span>Rooms</span><strong>{{ room_count }}</strong></div>
+  <div class="stat"><span>Scheduled entries</span><strong>{{ entry_count }}</strong></div>
+</section>
+<section class="panel">
+  <div class="panel-head"><div><p class="eyebrow">QUICK ACTION</p><h2>Generate timetable</h2></div><span class="pill">Draft mode</span></div>
+  <p class="muted">The generator avoids assigning the same faculty, room or section to two classes in the same day and time slot. It replaces the existing timetable entries when run.</p>
+  <form method="post" action="/generate" onsubmit="return confirm('Generate a new draft? Existing timetable_entries will be replaced.');">
+    <button class="primary" type="submit">✦ Generate timetable</button>
+    <a class="secondary" href="/timetable">View timetable</a>
+  </form>
+</section>
+<section class="panel">
+  <div class="panel-head"><div><p class="eyebrow">DATABASE CHECK</p><h2>Source tables</h2></div></div>
+  <div class="table-wrap"><table><thead><tr><th>Table</th><th>Status</th><th>Records</th></tr></thead><tbody>
+  {% for item in schema %}<tr><td>{{ item.name }}</td><td>{% if item.exists %}<span class="status good">Available</span>{% else %}<span class="status bad">Missing</span>{% endif %}</td><td>{{ item.count }}</td></tr>{% endfor %}
+  </tbody></table></div>
+  <p class="hint">If a required table has 0 records, add your real college data before generating.</p>
+</section>
+{% endblock %}

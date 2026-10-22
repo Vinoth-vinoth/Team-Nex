@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-title"><p class="eyebrow">RESOURCES</p><h1>Rooms</h1><p class="muted">Add actual classrooms and labs available at your college.</p></div>
+<section class="panel">
+<h2>Add a room</h2>
+<form method="post" class="room-form">
+<label>Room code<input name="room_code" placeholder="e.g. ECE-101" required maxlength="30"></label>
+<label>Room type<select name="room_type"><option value="CLASSROOM">Classroom</option><option value="LAB">Lab</option></select></label>
+<label>Capacity<input name="capacity" type="number" min="1" value="60" required></label>
+<button class="primary" type="submit">Add room</button>
+</form>
+</section>
+<section class="panel">
+<h2>Existing rooms <span class="count">{{ rooms|length }}</span></h2>
+<div class="table-wrap"><table><thead><tr><th>ID</th><th>Code</th><th>Type</th><th>Capacity</th><th>Available</th></tr></thead><tbody>
+{% for room in rooms %}<tr><td>{{ room.id }}</td><td>{{ room.room_code }}</td><td>{{ room.room_type }}</td><td>{{ room.capacity }}</td><td>{{ "Yes" if room.is_available else "No" }}</td></tr>
+{% else %}<tr><td colspan="5" class="empty">No rooms yet. Add your real rooms above.</td></tr>{% endfor %}
+</tbody></table></div>
+</section>
+{% endblock %}

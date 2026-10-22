@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Intelligent Timetable Generator — College Scheduler</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --primary: #3b82f6;
+      --accent: #8b5cf6;
+      --success: #10b981;
+      --border: rgba(255, 255, 255, 0.1);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .header {
+      padding: 24px 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-family: 'Outfit', sans-serif;
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    .brand-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    }
+
+    .status-pill {
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      background: rgba(16, 185, 129, 0.15);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #10b981;
+      box-shadow: 0 0 10px #10b981;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 60px 24px;
+      flex: 1;
+    }
+
+    .hero {
+      text-align: center;
+      margin-bottom: 50px;
+    }
+
+    .eyebrow {
+      color: #60a5fa;
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      margin-bottom: 12px;
+    }
+
+    h1 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 46px;
+      font-weight: 800;
+      line-height: 1.15;
+      margin-bottom: 16px;
+      background: linear-gradient(135deg, #ffffff 40%, #94a3b8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .subtitle {
+      font-size: 17px;
+      color: var(--muted);
+      max-width: 650px;
+      margin: 0 auto 32px;
+    }
+
+    .portal-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 24px;
+      margin-bottom: 50px;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 30px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: transform 0.2s, border-color 0.2s;
+    }
+
+    .card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(59, 130, 246, 0.4);
+    }
+
+    .card-icon {
+      font-size: 32px;
+      margin-bottom: 16px;
+    }
+
+    .card h3 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 20px;
+      margin-bottom: 10px;
+    }
+
+    .card p {
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.6;
+      margin-bottom: 24px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px 20px;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 14px;
+      text-decoration: none;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #3b82f6, #2563eb);
+      color: white;
+      box-shadow: 0 4px 14px rgba(37, 99, 235, 0.4);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.08);
+      color: white;
+      border: 1px solid var(--border);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    .demo-info {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+    }
+
+    .demo-info h4 {
+      font-family: 'Outfit', sans-serif;
+      margin-bottom: 12px;
+      font-size: 16px;
+      color: #93c5fd;
+    }
+
+    .demo-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13.5px;
+    }
+
+    .demo-table th,
+    .demo-table td {
+      padding: 10px 14px;
+      text-align: left;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .demo-table th {
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: uppercase;
+    }
+
+    .badge {
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .badge-admin {
+      background: rgba(239, 68, 68, 0.2);
+      color: #fca5a5;
+    }
+
+    .badge-staff {
+      background: rgba(59, 130, 246, 0.2);
+      color: #93c5fd;
+    }
+
+    .badge-student {
+      background: rgba(16, 185, 129, 0.2);
+      color: #6ee7b7;
+    }
+
+    footer {
+      text-align: center;
+      padding: 20px;
+      border-top: 1px solid var(--border);
+      font-size: 13px;
+      color: var(--muted);
+    }
+  </style>
+</head>
+
+<body>
+  <header class="header">
+    <div class="brand">
+      <div class="brand-icon">📅</div>
+      <span>Intelligent Timetable Scheduler</span>
+    </div>
+    <div class="status-pill" id="apiStatus">
+      <div class="status-dot"></div>
+      <span id="statusText">Checking Backend...</span>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="hero">
+      <p class="eyebrow">Smart College Scheduling Engine</p>
+      <h1>Intelligent Department<br>Timetable System</h1>
+      <p class="subtitle">
+        Automated constraint-based timetable scheduling for colleges. Prevent section, faculty, and laboratory room
+        clashes with atomic schedule generation.
+      </p>
+    </section>
+
+    <div class="portal-cards">
+      <div class="card">
+        <div>
+          <div class="card-icon">⚡</div>
+          <h3>React + Vite App</h3>
+          <p>
+            Full interactive dashboard with Master Data CRUD (Departments, Sections, Subjects, Faculty, Rooms), Faculty
+            Assignments, and the Day × Period matrix grid.
+          </p>
+        </div>
+        <a href="http://localhost:5173" target="_blank" class="btn btn-primary">
+          Launch Vite Dashboard (Port 5173) →
+        </a>
+      </div>
+
+      <div class="card">
+        <div>
+          <div class="card-icon">🎓</div>
+          <h3>Student Portal</h3>
+          <p>
+            Dedicated view-only student schedule viewer. Filter by section and view the weekly schedule without admin
+            editing permissions.
+          </p>
+        </div>
+        <a href="student.html" class="btn btn-secondary">
+          Open Student View →
+        </a>
+      </div>
+
+      <div class="card">
+        <div>
+          <div class="card-icon">🔐</div>
+          <h3>Direct Login Portal</h3>
+          <p>
+            Sign in as Admin, Staff, or Student with 1-click demo credential chips and JWT authentication token
+            generation.
+          </p>
+        </div>
+        <a href="login.html" class="btn btn-secondary">
+          Open Login Portal →
+        </a>
+      </div>
+    </div>
+
+    <div class="demo-info">
+      <h4>🔑 Verified College Demo Credentials</h4>
+      <table class="demo-table">
+        <thead>
+          <tr>
+            <th>Role</th>
+            <th>Email</th>
+            <th>Password</th>
+            <th>Permissions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="badge badge-admin">ADMIN</span></td>
+            <td><code>admin@college.com</code></td>
+            <td><code>admin123</code></td>
+            <td>Full master data CRUD, create users, generate timetable</td>
+          </tr>
+          <tr>
+            <td><span class="badge badge-staff">STAFF</span></td>
+            <td><code>staff@college.com</code></td>
+            <td><code>staff123</code></td>
+            <td>Edit sections/subjects/faculty/rooms, generate timetable</td>
+          </tr>
+          <tr>
+            <td><span class="badge badge-student">STUDENT</span></td>
+            <td><code>student@college.com</code></td>
+            <td><code>student123</code></td>
+            <td>View-only timetable matrix (editing disabled)</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+
+  <footer>
+    Intelligent Timetable Scheduler MVP — College Competition Ready
+  </footer>
+
+  <script>
+    async function checkHealth() {
+      try {
+        const res = await fetch('http://localhost:5000/api/health');
+        if (res.ok) {
+          document.getElementById('statusText').innerText = 'Backend Online (Port 5000)';
+        } else {
+          document.getElementById('statusText').innerText = 'Backend Error';
+        }
+      } catch (err) {
+        document.getElementById('statusText').innerText = 'Backend Offline';
+        document.getElementById('apiStatus').style.color = '#f87171';
+        document.querySelector('.status-dot').style.background = '#ef4444';
+        document.querySelector('.status-dot').style.boxShadow = '0 0 10px #ef4444';
+      }
+    }
+    checkHealth();
+  </script>
+</body>
+
+</html>

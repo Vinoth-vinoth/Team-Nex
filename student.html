@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Student Timetable Portal — View Only</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text: #0f172a;
+      --muted: #64748b;
+      --primary: #3b82f6;
+      --success: #10b981;
+      --border: #e2e8f0;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    header {
+      background: white;
+      padding: 16px 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-family: 'Outfit', sans-serif;
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .brand-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    }
+
+    .badge-student {
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 700;
+      background: #ecfdf5;
+      color: #047857;
+      border: 1px solid #a7f3d0;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 28px 20px;
+    }
+
+    .toolbar {
+      background: white;
+      padding: 16px 20px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .filter-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .filter-item label {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    select {
+      padding: 8px 12px;
+      font-family: inherit;
+      font-size: 13.5px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: white;
+    }
+
+    .btn {
+      padding: 8px 16px;
+      border-radius: 8px;
+      border: none;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .btn-print {
+      background: #334155;
+      color: white;
+    }
+
+    .table-container {
+      background: white;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      overflow-x: auto;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+    }
+
+    table {
+      width: 100%;
+      min-width: 950px;
+      border-collapse: collapse;
+      text-align: center;
+    }
+
+    th,
+    td {
+      border: 1px solid var(--border);
+      padding: 12px 8px;
+      vertical-align: middle;
+    }
+
+    th {
+      background: #f8fafc;
+      font-family: 'Outfit', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .day-cell {
+      background: #f1f5f9;
+      font-weight: 700;
+      width: 110px;
+    }
+
+    .break-cell {
+      background: #f8fafc;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+      writing-mode: vertical-rl;
+      width: 50px;
+    }
+
+    .lunch-cell {
+      background: #fef3c7;
+      color: #92400e;
+      font-size: 11px;
+      font-weight: 700;
+      writing-mode: vertical-rl;
+      width: 55px;
+    }
+
+    .period-card {
+      background: #ffffff;
+      border-left: 4px solid var(--primary);
+      padding: 6px;
+      border-radius: 6px;
+      text-align: left;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+
+    .period-card.lab {
+      border-left-color: var(--success);
+      background: #f0fdf4;
+    }
+
+    .card-code {
+      font-family: 'Outfit', sans-serif;
+      font-weight: 700;
+      font-size: 12px;
+    }
+
+    .card-name {
+      font-size: 10px;
+      color: var(--muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .card-meta {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 4px;
+      font-size: 10px;
+    }
+
+    .room-pill {
+      background: #e2e8f0;
+      padding: 1px 4px;
+      border-radius: 4px;
+      font-weight: 600;
+    }
+
+    @media print {
+
+      header,
+      .toolbar,
+      .btn {
+        display: none !important;
+      }
+
+      body {
+        background: white;
+      }
+
+      .container {
+        padding: 0;
+        max-width: 100%;
+      }
+
+      .table-container {
+        border: none;
+        box-shadow: none;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <div class="brand">
+      <div class="brand-icon">🎓</div>
+      <span>Student Timetable Portal</span>
+    </div>
+    <div style="display: flex; gap: 12px; align-items: center;">
+      <span class="badge-student">STUDENT VIEW-ONLY</span>
+      <a href="login.html" style="font-size: 13px; color: var(--primary); text-decoration: none;">Admin/Staff Login
+        →</a>
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="toolbar">
+      <div class="filter-item">
+        <label>Section:</label>
+        <select id="sectionSelect" onchange="renderTimetable()">
+          <option value="">Loading sections...</option>
+        </select>
+      </div>
+
+      <div class="filter-item" id="sectionInfo" style="font-size: 13px; color: var(--muted);"></div>
+
+      <button class="btn btn-print" onclick="window.print()">🖨️ Print Timetable</button>
+    </div>
+
+    <div class="table-container">
+      <table id="ttGrid">
+        <thead>
+          <tr id="ttHeader">
+            <th>DAY</th>
+          </tr>
+        </thead>
+        <tbody id="ttBody">
+          <tr>
+            <td colspan="10" style="padding: 40px;">Loading schedule...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = `${window.location.protocol}//${window.location.hostname || 'localhost'}:5000/api`;
+    let token = localStorage.getItem('token');
+    let allEntries = [];
+    let allSections = [];
+    let allSlots = [];
+    let allDays = [];
+
+    function formatTime(time) {
+      const [hourText, minute = '00'] = String(time || '').slice(0, 5).split(':');
+      const hour = Number(hourText);
+      if (!Number.isFinite(hour)) return String(time || '');
+      return `${hour % 12 || 12}:${minute} ${hour >= 12 ? 'PM' : 'AM'}`;
+    }
+
+    function formatTimeRange(slot) {
+      return `${formatTime(slot.start_time)} to ${formatTime(slot.end_time)}`;
+    }
+
+    async function init() {
+      // Auto-login with student account if no token exists
+      if (!token) {
+        try {
+          const lRes = await fetch(`${API_BASE}/auth/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: 'student@college.com', password: 'student123' })
+          });
+          const lData = await lRes.json();
+          token = lData.token;
+          localStorage.setItem('token', token);
+        } catch (e) {
+          console.error('Auto student login error:', e);
+        }
+      }
+
+      const headers = { 'Authorization': 'Bearer ' + token };
+
+      try {
+        const [sects, slts, dys, tt] = await Promise.all([
+          fetch(`${API_BASE}/sections`, { headers }).then(r => r.json()),
+          fetch(`${API_BASE}/time-slots`, { headers }).then(r => r.json()),
+          fetch(`${API_BASE}/working-days`, { headers }).then(r => r.json()),
+          fetch(`${API_BASE}/timetable`, { headers }).then(r => r.json())
+        ]);
+
+        allSections = sects;
+        allSlots = slts.sort((a, b) => a.id - b.id);
+        allDays = dys.filter(d => d.is_working);
+        allEntries = tt;
+
+        // Populate section dropdown
+        const select = document.getElementById('sectionSelect');
+        select.innerHTML = '';
+        allSections.forEach(s => {
+          const opt = document.createElement('option');
+          opt.value = s.id;
+          opt.innerText = `${s.section_name} (${s.department} · ${s.year_name} Year)`;
+          select.appendChild(opt);
+        });
+
+        // Set default to first section with entries
+        const secWithEntries = allSections.find(s => allEntries.some(e => e.section_id === s.id));
+        if (secWithEntries) {
+          select.value = secWithEntries.id;
+        }
+
+        renderHeader();
+        renderTimetable();
+      } catch (err) {
+        document.getElementById('ttBody').innerHTML = `<tr><td colspan="10" style="color:red; padding:30px;">Error loading data: ${err.message}. Is backend running on port 5000?</td></tr>`;
+      }
+    }
+
+    function renderHeader() {
+      const headerRow = document.getElementById('ttHeader');
+      headerRow.innerHTML = '<th class="day-cell">DAY / TIME</th>';
+      allSlots.forEach(slot => {
+        const th = document.createElement('th');
+        th.innerHTML = `<div>${slot.slot_name}</div><div style="font-size:10px; color:#64748b; font-weight:normal;">${formatTimeRange(slot)}</div>`;
+        headerRow.appendChild(th);
+      });
+    }
+
+    function renderTimetable() {
+      const secId = document.getElementById('sectionSelect').value;
+      const secObj = allSections.find(s => String(s.id) === String(secId));
+      if (secObj) {
+        document.getElementById('sectionInfo').innerText = `Class Strength: ${secObj.strength} students`;
+      }
+
+      const tbody = document.getElementById('ttBody');
+      tbody.innerHTML = '';
+
+      allDays.forEach(day => {
+        const tr = document.createElement('tr');
+        const dayTd = document.createElement('td');
+        dayTd.className = 'day-cell';
+        dayTd.innerText = day.day_name;
+        tr.appendChild(dayTd);
+
+        allSlots.forEach(slot => {
+          const td = document.createElement('td');
+          if (slot.slot_type === 'BREAK') {
+            td.className = 'break-cell';
+            td.innerText = 'BREAK';
+          } else if (slot.slot_type === 'LUNCH') {
+            td.className = 'lunch-cell';
+            td.innerText = 'LUNCH';
+          } else {
+            const entry = allEntries.find(e => String(e.section_id) === String(secId) && e.working_day_id === day.id && e.time_slot_id === slot.id);
+            if (entry) {
+              td.innerHTML = `
+                <div class="period-card ${entry.is_lab ? 'lab' : ''}">
+                  <div class="card-code">${entry.subject_code}</div>
+                  <div class="card-name">${entry.subject_name}</div>
+                  <div class="card-meta">
+                    <span>${entry.faculty}</span>
+                    <span class="room-pill">${entry.room_code}</span>
+                  </div>
+                </div>
+              `;
+            } else {
+              td.innerHTML = '<span style="color:#cbd5e1">—</span>';
+            }
+          }
+          tr.appendChild(td);
+        });
+
+        tbody.appendChild(tr);
+      });
+    }
+
+    init();
+  </script>
+</body>
+
+</html>
