@@ -1,5 +1,12 @@
 apply plugin: 'com.android.application'
 
+// Release signing config, read from keystore.properties (gitignored).
+def keystorePropertiesFile = rootProject.file("keystore.properties")
+def keystoreProperties = new Properties()
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+}
+
 android {
     namespace = "com.college.timetable"
     compileSdk = rootProject.ext.compileSdkVersion
@@ -16,8 +23,23 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    signingConfigs {
+        release {
+            if (keystoreProperties.containsKey('storeFile')) {
+                storeFile rootProject.file("app/" + keystoreProperties['storeFile'])
+                storePassword keystoreProperties['storePassword']
+                keyAlias keystoreProperties['keyAlias']
+                keyPassword keystoreProperties['keyPassword']
+            }
+        }
+    }
     buildTypes {
         release {
+            // Falls back to the debug signature when no keystore is configured,
+            // so `assembleRelease` still produces an installable APK.
+            signingConfig keystoreProperties.containsKey('storeFile')
+                ? signingConfigs.release
+                : signingConfigs.debug
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }

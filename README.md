@@ -28,7 +28,7 @@ reach the backend on your PC. There are four things that must all be true:
    Backend: http://localhost:5000
    Health check: http://localhost:5000/api/health
    Open on your phone (same Wi-Fi):
-     http://10.205.98.119:5000
+     http://10.128.220.119:5000
    ```
 
 2. **Open the firewall port once** — double-click `open_firewall_port.bat`
@@ -36,8 +36,11 @@ reach the backend on your PC. There are four things that must all be true:
    Defender Firewall has blocked some features" popup the first time Node
    listens — tick **Private networks** and press *Allow access*.)
 
-3. **Verify from the phone browser** — open `http://10.205.98.119:5000`.
-   You should see the green *"Backend server is running successfully"* page.
+3. **Verify from the phone browser** — open the address the backend printed,
+   e.g. `http://10.128.220.119:5000`. The backend now serves the **actual web
+   app** from that address, so you should see the Sign In screen (not a plain
+   "backend is running" page). `http://<ip>:5000/api/health` still returns
+   `{"ok":true,...}`.
 
 4. **Build the Android app** — double-click `build_android.bat`.
    It rebuilds the web app and copies it into `frontend/android`.
@@ -52,10 +55,101 @@ reach the backend on your PC. There are four things that must all be true:
    Install it on the phone (or press Run in Android Studio).
 
 5. **If your PC's IP changes** (new Wi-Fi, DHCP renewal) the app will show
-   "Cannot reach the backend". Open the app and tap **Server: ...** under the
-   Sign In button, then type the new address, for example
-   `http://10.205.98.119:5000/api`, and press **Save**.
+   "Cannot reach the backend". The app probes the addresses it knows about
+   automatically and picks the one that answers `/api/health`, so it often
+   recovers on its own. If it does not, tap **Server: ...** under the
+   Sign In button, type the new address, for example
+   `http://10.128.220.119:5000/api`, and press **Save**.
+   Press **Test** to check the address without leaving the app.
    You can also edit `frontend/.env` and run `build_android.bat` again.
+
+---
+
+## Installing the app on the phone (release APK)
+
+The signed release APK is the one to install for normal use:
+
+```
+frontend\android\app\build\outputs\apk\release\app-release.apk
+```
+
+**On the phone**
+
+1. Copy `app-release.apk` to the phone (USB cable, Google Drive, WhatsApp
+   file transfer, …).
+2. Tap the file in the phone's file manager.
+3. Android will ask *"Install unknown apps"* — allow it for the app you are
+   opening the APK from (Files / Chrome / WhatsApp).
+4. Install, then open **Intelligent Timetable**.
+
+**On the PC**
+
+```
+cd frontend\android
+gradlew assembleRelease
+```
+
+The APK is signed with the keystore described by
+`frontend\android\keystore.properties` (see `keystore.properties.example`).
+Because the key is fixed, Android will let you *upgrade* over an older
+install of the same app. If you lose the keystore you must uninstall the app
+before installing a differently signed build.
+
+> If you ever change `keystore.properties` and the install fails with
+> *"App not installed"*, uninstall the previous copy first:
+> `adb uninstall com.college.timetable`.
+
+---
+
+## Building the Android app — JDK note
+
+The build fails with
+
+```
+BUG! exception in phase 'semantic analysis' in source unit '_BuildScript_'
+Unsupported class file major version 69
+```
+
+when Gradle runs on **Java 25** (the current Android Studio JBR). Gradle
+8.14.3 cannot read Java 25 class files. Fix it by pointing Gradle at a
+JDK 21:
+
+1. Download a JDK 21 (Temurin) and unpack it, e.g. to
+   `C:\Users\<you>\AppData\Local\Programs\jdk-21.0.12.1+1`.
+2. Add it to `C:\Users\<you>\.gradle\gradle.properties` (not the project one —
+   the path is machine-specific):
+
+   ```
+   org.gradle.java.home=C:\\Users\\<you>\\AppData\\Local\\Programs\\jdk-21.0.12.1+1
+   ```
+
+3. Stop any running Gradle daemons: `gradlew --stop`
+4. Build again: `gradlew assembleRelease`
+
+---
+
+## The backend also serves the web app
+
+`backend/src/server.js` serves the built React app from `frontend/dist` on the
+same port as the API:
+
+| URL | What you get |
+|-----|--------------|
+| `http://<pc-ip>:5000/` | The full web application (Sign In screen) |
+| `http://<pc-ip>:5000/api/health` | `{"ok":true,"message":"Backend is running"}` |
+| `http://<pc-ip>:5000/<anything-else>` | The app again (SPA fallback) |
+
+That means the phone browser and the Android app talk to exactly the same
+backend, and the API base is relative (`/api`) when the app is opened through
+the browser — no IP to type.
+
+## Working offline
+
+The app keeps the last timetable it loaded in the phone's local storage. If
+the backend cannot be reached it shows that saved data with an
+**"OFFLINE - SAVED DATA"** badge instead of an empty screen, and the saved
+login session is kept (only a genuine `401` signs the user out). The app
+re-checks the backend every time it starts.
 
 ---
 
@@ -125,3 +219,6 @@ Node backend.
 | `Cannot reach the backend at http://localhost:5000/api` | App is using the WebView's own hostname | Set the address in the app under **Server: ...** or in `frontend/.env` |
 | `EADDRINUSE` in the backend log | Another process owns port 5000 | Stop the other server, or set a different `PORT` in `backend/.env` |
 | `java.io.IOException: Invalid file path` during the Android build | `local.properties` has a malformed `sdk.dir` | Use forward slashes: `sdk.dir=C:/Users/<you>/AppData/Local/Android/Sdk` (see `frontend/android/local.properties.example`) |
+| `Unsupported class file major version 69` during the Android build | Gradle is running on Java 25 | Point `org.gradle.java.home` at a JDK 21 in `~/.gradle/gradle.properties` (see **Building the Android app — JDK note**) |
+| `INSTALL_FAILED_UPDATE_INCOMPATIBLE` when installing the APK | The new APK is signed with a different key than the installed one | Uninstall the old app first (`adb uninstall com.college.timetable`) |
+| App shows "Cannot reach the backend" but the browser on the same phone works | The app still has an old server address saved | Tap **Server: ...** → **Test** to re-detect, or type the address and press **Save** |

@@ -4,6 +4,9 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
 import os from 'os';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { pool } from './db.js';
 import { auth, roles } from './auth.js';
 
@@ -15,20 +18,6 @@ const WORKING_DAY_SQL_LIST = WORKING_DAY_NAMES.map(day => `'${day}'`).join(', ')
 
 app.use(cors());
 app.use(express.json());
-
-// Homepage: opening localhost:5000 should show a message
-app.get('/', (req, res) => {
-  res.send(`
-    <html>
-      <head><title>Intelligent Timetable Generator</title></head>
-      <body style="font-family:Arial;text-align:center;padding:60px;background:#101827;color:white">
-        <h1>Intelligent Timetable Generator</h1>
-        <p>Backend server is running successfully.</p>
-        <p>API Health: <a style="color:#7ee787" href="/api/health">Check API</a></p>
-      </body>
-    </html>
-  `);
-});
 
 // Health check
 app.get('/api/health', (req, res) => {
@@ -476,7 +465,45 @@ app.post('/api/generate', auth, roles('ADMIN', 'STAFF'), async (req, res) => {
   }
 });
 
+// ---------------------------------------------------------------------------
+// Web app
+// ---------------------------------------------------------------------------
+// The built React app (frontend/dist) is served from the same origin as the
+// API, so opening http://<pc-ip>:5000 on a phone shows the real application
+// instead of a bare "backend is running" page.
+const here = path.dirname(fileURLToPath(import.meta.url));
+const distDir = path.resolve(here, '..', '..', 'frontend', 'dist');
+
+if (fs.existsSync(path.join(distDir, 'index.html'))) {
+  app.use(express.static(distDir));
+
+  // SPA fallback: any non-API GET returns the app shell.
+  app.use((req, res, next) => {
+    if (req.method !== 'GET' && req.method !== 'HEAD') return next();
+    if (req.path.startsWith('/api/')) return next();
+    res.sendFile(path.join(distDir, 'index.html'));
+  });
+} else {
+  // No build present - still answer the root so the server is not a dead end.
+  app.get('/', (req, res) => {
+    res.send(`
+      <html>
+        <head><title>Intelligent Timetable Generator</title></head>
+        <body style="font-family:Arial;text-align:center;padding:60px;background:#101827;color:white">
+          <h1>Intelligent Timetable Generator</h1>
+          <p>Backend server is running successfully.</p>
+          <p style="color:#9ca3af">The web app has not been built yet.<br>
+             Run <code>npm run build</code> inside the <code>frontend</code> folder.</p>
+          <p>API Health: <a style="color:#7ee787" href="/api/health">Check API</a></p>
+        </body>
+      </html>
+    `);
+  });
+}
+
+// ---------------------------------------------------------------------------
 // Start server
+// ---------------------------------------------------------------------------
 const PORT = Number(process.env.PORT) || 5000;
 // Bind to every interface so a phone on the same Wi-Fi can reach the API.
 // "127.0.0.1" here is the usual cause of ERR_CONNECTION_TIMED_OUT on the device.

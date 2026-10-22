@@ -5,19 +5,27 @@ import './styles.css';
 
 const API_PORT = import.meta.env.VITE_API_PORT || '5000';
 const API_BASE_KEY = 'timetable_api_base';
+const LAST_API_KEY = 'timetable_last_api';
+const DATA_CACHE_KEY = 'timetable_cached_data';
+
+const stripSlash = value => value.replace(/\/+$/, '');
 
 // The Android WebView reports its own hostname as "localhost", so the API host
 // can never be derived from window.location on a phone. Resolution order:
 // 1) address saved in the app (localStorage) -> survives IP changes without a rebuild
-// 2) VITE_API_BASE_URL baked in at build time
-// 3) VITE_LAN_IP baked in at build time
-// 4) the host the page was opened with (works for desktop/browser use)
-function resolveApiBase() {
+// 2) the page was served by the backend itself -> same origin, no host needed
+// 3) VITE_API_BASE_URL baked in at build time
+// 4) VITE_LAN_IP baked in at build time
+// 5) the host the page was opened with (works for desktop/browser use)
+function configuredApiBase() {
   const saved = (localStorage.getItem(API_BASE_KEY) || '').trim();
-  if (saved) return saved.replace(/\/+$/, '');
+  if (saved) return stripSlash(saved);
+
+  // Loaded from http://<host>:5000 -> the API lives on the same origin.
+  if (window.location.port === API_PORT) return '/api';
 
   const configured = (import.meta.env.VITE_API_BASE_URL || '').trim();
-  if (configured) return configured.replace(/\/+$/, '');
+  if (configured) return stripSlash(configured);
 
   const lanIp = (import.meta.env.VITE_LAN_IP || '').trim();
   if (lanIp) return `http://${lanIp}:${API_PORT}/api`;
@@ -25,7 +33,73 @@ function resolveApiBase() {
   return `http://${window.location.hostname || 'localhost'}:${API_PORT}/api`;
 }
 
-const api = axios.create({ baseURL: resolveApiBase() });
+// Best guess right now; replaced by discoverApiBase() once we know what answers.
+let activeApiBase = configuredApiBase();
+
+function resolveApiBase() {
+  return activeApiBase;
+}
+
+// Every address we are willing to try, best guess first.
+function candidateApiBases() {
+  const list = [];
+  const push = value => {
+    const trimmed = (value || '').trim();
+    if (trimmed && !list.includes(stripSlash(trimmed))) list.push(stripSlash(trimmed));
+  };
+
+  push(localStorage.getItem(API_BASE_KEY));
+  push(localStorage.getItem(LAST_API_KEY));
+  if (window.location.port === API_PORT) push('/api');
+  push(import.meta.env.VITE_API_BASE_URL);
+  if ((import.meta.env.VITE_LAN_IP || '').trim()) {
+    push(`http://${import.meta.env.VITE_LAN_IP.trim()}:${API_PORT}/api`);
+  }
+  push(`http://${window.location.hostname || 'localhost'}:${API_PORT}/api`);
+
+  return list;
+}
+
+// The PC's Wi-Fi IP changes (DHCP / hotspot reconnect), so probe the known
+// addresses and use the first one that answers /api/health.
+async function discoverApiBase() {
+  for (const candidate of candidateApiBases()) {
+    // Same origin - always reachable, no need to probe.
+    if (candidate.startsWith('/')) {
+      activeApiBase = candidate;
+      api.defaults.baseURL = candidate;
+      return candidate;
+    }
+
+    const healthUrl = candidate.endsWith('/api') ? `${candidate}/health` : `${candidate}/api/health`;
+    try {
+      await axios.get(healthUrl, { timeout: 3000 });
+      activeApiBase = candidate;
+      api.defaults.baseURL = candidate;
+      localStorage.setItem(LAST_API_KEY, candidate);
+      return candidate;
+    } catch {
+      // Try the next candidate.
+    }
+  }
+
+  // Nothing answered - keep the current guess so the app can still try.
+  return null;
+}
+
+const api = axios.create({ baseURL: activeApiBase });
+
+// Read the last successfully loaded copy of the data (used when offline).
+function readCachedData() {
+  try {
+    const raw = localStorage.getItem(DATA_CACHE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    return parsed && Array.isArray(parsed.tt) ? parsed : null;
+  } catch {
+    return null;
+  }
+}
 
 function formatTime(time) {
   const [hourText, minute = '00'] = String(time || '').slice(0, 5).split(':');
@@ -58,6 +132,8 @@ function Login({ onLogin }) {
   const [showServer, setShowServer] = useState(false);
   const [serverUrl, setServerUrl] = useState(() => resolveApiBase());
   const [serverSaved, setServerSaved] = useState(false);
+  const [testing, setTesting] = useState(false);
+  const [testResult, setTestResult] = useState(null);
 
   const fillCredentials = (e, p) => {
     setEmail(e);
@@ -72,10 +148,26 @@ function Login({ onLogin }) {
     } else {
       localStorage.setItem(API_BASE_KEY, value);
     }
-    setServerUrl(resolveApiBase());
+    activeApiBase = configuredApiBase();
+    api.defaults.baseURL = activeApiBase;
+    setServerUrl(activeApiBase);
     setServerSaved(true);
     setError('');
     setTimeout(() => setServerSaved(false), 2500);
+  };
+
+  // Probe the saved address, then every other known address.
+  const testConnection = async () => {
+    setTesting(true);
+    setTestResult(null);
+    const found = await discoverApiBase();
+    setTestResult(
+      found
+        ? { ok: true, text: `Connected to ${found}` }
+        : { ok: false, text: 'No backend answered. Check the PC is running run.bat and the IP is correct.' }
+    );
+    setServerUrl(activeApiBase);
+    setTesting(false);
   };
 
   const handleLogin = async (e) => {
@@ -190,22 +282,34 @@ function Login({ onLogin }) {
                 <button type="button" className="btn-demo-role" onClick={saveServer}>
                   Save
                 </button>
+                <button type="button" className="btn-demo-role" onClick={testConnection} disabled={testing}>
+                  {testing ? 'Testing...' : 'Test'}
+                </button>
                 <button
                   type="button"
                   className="btn-demo-role"
                   onClick={() => {
                     localStorage.removeItem(API_BASE_KEY);
-                    setServerUrl(resolveApiBase());
+                    localStorage.removeItem(LAST_API_KEY);
+                    activeApiBase = configuredApiBase();
+                    api.defaults.baseURL = activeApiBase;
+                    setServerUrl(activeApiBase);
                     setServerSaved(false);
+                    setTestResult(null);
                   }}
                 >
                   Reset
                 </button>
                 {serverSaved && <span className="server-saved">Saved</span>}
               </div>
+              {testResult && (
+                <p className={`server-hint ${testResult.ok ? 'server-test-ok' : 'server-test-fail'}`}>
+                  {testResult.text}
+                </p>
+              )}
               <p className="server-hint">
-                Use your PC&apos;s Wi-Fi IP address (not localhost). Press Reset to go back to
-                the built-in default.
+                Use your PC&apos;s Wi-Fi IP address (not localhost). The app also probes the known
+                addresses automatically, so a changed IP is usually picked up on its own.
               </p>
             </div>
           )}
@@ -236,6 +340,7 @@ function App() {
   const [notification, setNotification] = useState(null);
   const [generating, setGenerating] = useState(false);
   const [conflicts, setConflicts] = useState([]);
+  const [offline, setOffline] = useState(false);
 
   // Only restore a saved user after the backend confirms the stored token.
   useEffect(() => {
@@ -244,9 +349,12 @@ function App() {
     let active = true;
 
     const validateSession = async () => {
+      // Find the backend first - the PC's IP may have changed since last launch.
+      await discoverApiBase();
+
       if (!token || !savedUser) {
-        setUser(null);
-        setCheckingSession(false);
+        if (active) setUser(null);
+        if (active) setCheckingSession(false);
         return;
       }
 
@@ -255,9 +363,22 @@ function App() {
         const response = await api.get('/auth/me');
         if (active) setUser(response.data.user);
       } catch (err) {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        if (active) setUser(null);
+        if (err.response) {
+          // The server answered but rejected us - the session really is invalid.
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          if (active) setUser(null);
+        } else {
+          // No answer from the server - keep the saved session so the app still
+          // opens (offline) instead of throwing the user back to the login page.
+          try {
+            if (active) setUser(JSON.parse(savedUser));
+          } catch {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            if (active) setUser(null);
+          }
+        }
       } finally {
         if (active) setCheckingSession(false);
       }
@@ -290,7 +411,7 @@ function App() {
 
       const timetableEntries = Array.isArray(tt.data) ? tt.data : [];
 
-      setData({
+      const fresh = {
         departments: depts.data,
         years: yrs.data,
         sections: sects.data,
@@ -302,8 +423,29 @@ function App() {
         slots: slts.data,
         rules: [],
         tt: timetableEntries
-      });
+      };
+
+      setData(fresh);
+      setOffline(false);
+      // Keep the last good copy so the app still shows something if the
+      // backend goes away.
+      try {
+        localStorage.setItem(DATA_CACHE_KEY, JSON.stringify(fresh));
+      } catch {
+        // Storage full - not fatal, the cache is only a convenience.
+      }
     } catch (err) {
+      const cached = readCachedData();
+      if (cached) {
+        setData(cached);
+        setOffline(true);
+        setNotification({
+          type: 'warning',
+          text: 'Offline mode - showing the last data saved on this device. Start the backend to refresh.'
+        });
+        return;
+      }
+
       const requestPath = err.config?.url || 'the API';
       setNotification({
         type: 'error',
@@ -427,6 +569,11 @@ function App() {
             <p>Intelligent Timetable Generator & Conflict Resolver</p>
           </div>
           <div className="topbar-badges">
+            {offline && (
+              <span className="status-badge badge-offline">
+                📴 OFFLINE - SAVED DATA
+              </span>
+            )}
             <span className={`status-badge ${isStudent ? 'badge-view-only' : 'badge-admin-mode'}`}>
               {isStudent ? '🔒 VIEW-ONLY MODE (STUDENT)' : '✏️ EDIT & GENERATE ENABLED'}
             </span>

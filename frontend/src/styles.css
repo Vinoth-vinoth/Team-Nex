@@ -350,6 +350,12 @@ body {
   border: 1px solid #bfdbfe;
 }
 
+.badge-offline {
+  background: #f1f5f9;
+  color: #475569;
+  border: 1px solid #cbd5e1;
+}
+
 /* Alert Notification Banner */
 .notification-banner {
   margin: 20px 32px 0;
@@ -391,6 +397,12 @@ body {
   background: var(--info-light);
   border: 1px solid #a5f3fc;
   color: #155e75;
+}
+
+.banner-warning {
+  background: var(--warning-light);
+  border: 1px solid #fde68a;
+  color: #b45309;
 }
 
 /* Content Body */
@@ -1064,6 +1076,16 @@ body {
   font-size: 11px;
   line-height: 1.5;
   color: var(--text-light);
+}
+
+.server-test-ok {
+  color: #15803d;
+  font-weight: 600;
+}
+
+.server-test-fail {
+  color: #b91c1c;
+  font-weight: 600;
 }
 
 /* Print Styles */

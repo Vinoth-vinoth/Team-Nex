@@ -11,6 +11,9 @@ backend/.env
 frontend/dist/
 *.log
 
+# Ready-to-install APKs (copied out of the Gradle build output)
+apk/
+
 # Android / Gradle
 frontend/android/.gradle/
 frontend/android/build/
@@ -23,6 +26,11 @@ frontend/android/app/src/main/res/xml/config.xml
 
 # Local machine config (SDK path differs per PC - see frontend/android/local.properties.example)
 frontend/android/local.properties
+
+# Signing material - never commit
+frontend/android/keystore.properties
+*.keystore
+*.jks
 
 # IDE
 .idea/
