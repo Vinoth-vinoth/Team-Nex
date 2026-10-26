@@ -1,0 +1,328 @@
+/* ==========================================================================
+   MOTION SYSTEM
+   Lightweight transform/opacity animation. All non-essential motion respects
+   prefers-reduced-motion.
+   ========================================================================== */
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pulseDot {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: scale(0.88);
+    box-shadow: 0 0 0 0 rgba(225, 75, 255, 0.38);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1);
+    box-shadow: 0 0 0 6px rgba(225, 75, 255, 0);
+  }
+}
+
+@keyframes ambientBreath {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 0.48;
+  }
+
+  50% {
+    transform: translate3d(16px, -26px, 0) scale(1.12);
+    opacity: 0.72;
+  }
+}
+
+@keyframes sphereFloatA {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) rotate(0deg) scale(1);
+  }
+
+  33% {
+    transform: translate3d(-16px, -30px, 0) rotate(5deg) scale(1.04);
+  }
+
+  66% {
+    transform: translate3d(12px, -12px, 0) rotate(-4deg) scale(0.97);
+  }
+}
+
+@keyframes sphereFloatB {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) rotate(0deg) scale(1);
+  }
+
+  50% {
+    transform: translate3d(20px, -38px, 0) rotate(-7deg) scale(1.06);
+  }
+}
+
+@keyframes sphereFloatC {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+
+  50% {
+    transform: translate3d(-12px, -20px, 0) rotate(8deg);
+  }
+}
+
+@keyframes floatSoft {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+
+  50% {
+    transform: translate3d(0, -10px, 0);
+  }
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 28px, 0);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes screenEnter {
+  from {
+    opacity: 0;
+    transform: perspective(1500px) rotateY(-9deg) rotateX(5deg) translate3d(0, 28px, 0) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: perspective(1500px) rotateY(-9deg) rotateX(5deg) translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes pageIn {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 12px, 0);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translate3d(0, -8px, 0);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes drawerIn {
+  from {
+    transform: translate3d(100%, 0, 0);
+  }
+
+  to {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes glowPulse {
+  0%,
+  100% {
+    opacity: 0.5;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.78;
+    transform: scale(1.05);
+  }
+}
+
+/* Entrance choreography for the landing hero */
+.hero-copy > * {
+  animation: fadeUp 1s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.hero-copy > *:nth-child(1) {
+  animation-delay: 0.06s;
+}
+
+.hero-copy > *:nth-child(2) {
+  animation-delay: 0.14s;
+}
+
+.hero-copy > *:nth-child(3) {
+  animation-delay: 0.22s;
+}
+
+.hero-copy > *:nth-child(4) {
+  animation-delay: 0.3s;
+}
+
+.hero-copy > *:nth-child(5) {
+  animation-delay: 0.38s;
+}
+
+.hero-copy > *:nth-child(6) {
+  animation-delay: 0.46s;
+}
+
+.hero-copy > *:nth-child(7) {
+  animation-delay: 0.54s;
+}
+
+.hero-visual {
+  animation: fadeIn 1s ease 0.2s both;
+}
+
+.product-mockup {
+  animation: screenEnter 1.4s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both;
+}
+
+.landing-nav {
+  animation: slideDown 0.7s ease both;
+}
+
+.trust-strip {
+  animation: fadeUp 0.9s ease 0.55s both;
+}
+
+/* Landing scroll reveals */
+.reveal {
+  opacity: 0;
+  transform: translate3d(0, 26px, 0);
+  transition:
+    opacity 0.75s cubic-bezier(0.22, 0.82, 0.24, 1),
+    transform 0.75s cubic-bezier(0.22, 0.82, 0.24, 1);
+}
+
+.reveal.is-visible {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+}
+
+.showcase-card:nth-child(2).reveal {
+  transition-delay: 0.08s;
+}
+
+.showcase-card:nth-child(3).reveal {
+  transition-delay: 0.14s;
+}
+
+.showcase-card:nth-child(4).reveal {
+  transition-delay: 0.2s;
+}
+
+.showcase-card:nth-child(5).reveal {
+  transition-delay: 0.26s;
+}
+
+/* Dashboard page transition wrapper */
+.page-transition {
+  animation: pageIn 0.45s cubic-bezier(0.22, 0.82, 0.24, 1) both;
+}
+
+.notification-banner {
+  animation: slideDown 0.3s ease both;
+}
+
+/* Stagger support used by the dashboard reveal observer */
+.stat-card:nth-child(1) {
+  --reveal-delay: 0ms;
+}
+
+.stat-card:nth-child(2) {
+  --reveal-delay: 45ms;
+}
+
+.stat-card:nth-child(3) {
+  --reveal-delay: 90ms;
+}
+
+.stat-card:nth-child(4) {
+  --reveal-delay: 135ms;
+}
+
+.stat-card:nth-child(5) {
+  --reveal-delay: 180ms;
+}
+
+.stat-card:nth-child(6) {
+  --reveal-delay: 225ms;
+}
+
+/* --------------------------------------------------------------------------
+   Reduced motion: keep the interface fully usable and calm
+   -------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .reveal,
+  .scroll-reveal {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  .hero-copy > *,
+  .hero-visual,
+  .product-mockup,
+  .landing-nav,
+  .trust-strip {
+    animation: none !important;
+  }
+
+  .sphere,
+  .float-chip,
+  .ambient-glow {
+    animation: none !important;
+  }
+}
+
+/* Touch devices: no hover lift and no pointer parallax dependency */
+@media (hover: none) {
+  .showcase-card:hover,
+  .stat-card:hover,
+  .panel:hover {
+    transform: none;
+  }
+}

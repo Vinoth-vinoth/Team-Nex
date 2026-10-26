@@ -19,6 +19,13 @@ if errorlevel 1 (
 netsh advfirewall firewall delete rule name="Timetable Backend (TCP 5000)" >nul 2>nul
 netsh advfirewall firewall add rule name="Timetable Backend (TCP 5000)" dir=in action=allow protocol=TCP localport=5000 profile=any
 
+powershell -Command "Get-NetConnectionProfile | Set-NetConnectionProfile -NetworkCategory Private -ErrorAction SilentlyContinue"
+
 echo.
-echo Done. You can close this window.
+echo ==============================================
+echo SUCCESS! Port 5000 is now open.
+echo Current PC IP: 10.143.188.119
+echo Test on phone browser: http://10.143.188.119:5000
+echo ==============================================
+echo.
 pause

@@ -1,0 +1,12 @@
+{
+    "env": {
+        "ANTHROPIC_BASE_URL": "http://localhost:20128/v1",
+        "ANTHROPIC_AUTH_TOKEN": "sk-6a99a64f58fdad79-299f39-081f8f9b",
+        "ANTHROPIC_MODEL": "kc/openrouter/free",
+        "ANTHROPIC_SMALL_FAST_MODEL": "kc/openrouter/free",
+        "ANTHROPIC_DEFAULT_OPUS_MODEL": "kc/openrouter/free",
+        "ANTHROPIC_DEFAULT_SONNET_MODEL": "kc/openrouter/free",
+        "ANTHROPIC_DEFAULT_HAIKU_MODEL": "kc/openrouter/free",
+        "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1"
+    }
+}
